@@ -14,10 +14,10 @@ type TransactionResponseDto struct {
 }
 
 type TransactionDto struct {
-	Value       int       `json:"valor"`
-	T           string    `json:"tipo"`
-	Description string    `json:"descricao"`
-	Realized    time.Time `json:"realizada_em"`
+	Value        int       `json:"valor"`
+	Type         string    `json:"tipo"`
+	Description  string    `json:"descricao"`
+	Accomplished time.Time `json:"realizada_em"`
 }
 
 type BalanceDto struct {

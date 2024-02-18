@@ -62,7 +62,7 @@ func (tm *TransactionRepository) getLastTenTransactionsOfOneUser(c context.Conte
 
 	var t TransactionDto
 	for rows.Next() {
-		if err := rows.Scan(&t.Value, &t.T, &t.Description, &t.Realized); err != nil {
+		if err := rows.Scan(&t.Value, &t.Type, &t.Description, &t.Accomplished); err != nil {
 			log.Println("Failed to scan a row")
 		}
 		tr = append(tr, t)
