@@ -12,6 +12,22 @@ type ClientRepository struct {
 	dbPool *pgxpool.Pool
 }
 
+func (cm *ClientRepository) checkIfClientExists(c context.Context, id int) (bool, error) {
+	var exists bool
+
+	idStr := strconv.Itoa(id)
+	err := cm.dbPool.QueryRow(c,
+		"SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1)",
+		idStr,
+	).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists, nil
+}
+
 func (cm *ClientRepository) getClientBalance(c context.Context, id int) (*BalanceDto, error) {
 	var b BalanceDto
 
