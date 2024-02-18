@@ -61,3 +61,15 @@ func (tm *TransactionRepository) getLastTenTransactionsOfOneUser(c context.Conte
 
 	return tr, nil
 }
+
+func (tm *TransactionRepository) createTransaction(c context.Context, value, uId int, t, desc string) error {
+	_, err := tm.dbPool.Exec(c,
+		"INSERT INTO \"transaction\" (value, type, description, client_id) VALUES ($1, $2, $3, $4)",
+		value, t, desc, uId,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
