@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -33,7 +34,10 @@ func Handle() {
 	cr = NewClientRepository(pool)
 	tr = NewTransactionRepository(pool)
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		JSONEncoder: json.Marshal,
+		JSONDecoder: json.Unmarshal,
+	})
 
 	app.Post("/clientes/:id/transacoes", createTransactionHandler)
 	app.Get("/clientes/:id/extrato", getStatementHandler)
