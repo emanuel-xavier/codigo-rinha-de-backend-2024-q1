@@ -8,6 +8,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func createTransactionHandler(c *fiber.Ctx) error {
+	return nil
+}
+
+func getStatementHandler(c *fiber.Ctx) error {
+	return nil
+}
+
 func Handle() {
 	err := configs.Load()
 	if err != nil {
@@ -16,6 +24,9 @@ func Handle() {
 	serverPort := ":" + configs.GetServerPort()
 
 	app := fiber.New()
+
+	app.Post("/clientes/:id/transacoes", createTransactionHandler)
+	app.Get("/clientes/:id/extrato", getStatementHandler)
 
 	log.Fatal(app.Listen(serverPort))
 }
