@@ -12,6 +12,12 @@ type ClientRepository struct {
 	dbPool *pgxpool.Pool
 }
 
+func NewClientRepository(dbPool *pgxpool.Pool) *ClientRepository {
+	return &ClientRepository{
+		dbPool: dbPool,
+	}
+}
+
 func (cm *ClientRepository) checkIfClientExists(c context.Context, id int) (bool, error) {
 	var exists bool
 
@@ -47,6 +53,12 @@ func (cm *ClientRepository) getClientBalance(c context.Context, id int) (*Balanc
 
 type TransactionRepository struct {
 	dbPool *pgxpool.Pool
+}
+
+func NewTransactionRepository(dbPool *pgxpool.Pool) *TransactionRepository {
+	return &TransactionRepository{
+		dbPool: dbPool,
+	}
 }
 
 func (tm *TransactionRepository) createTransaction(c context.Context, value, uId int, t, desc string) error {
