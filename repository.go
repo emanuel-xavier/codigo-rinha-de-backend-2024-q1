@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"strconv"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -30,4 +31,33 @@ func (cm *ClientRepository) getClientBalance(c context.Context, id int) (*Balanc
 
 type TransactionRepository struct {
 	dbPool *pgxpool.Pool
+}
+
+func (tm *TransactionRepository) getLastTenTransactionsOfOneUser(c context.Context, id int) ([]TransactionDto, error) {
+	var tr []TransactionDto
+
+	idStr := strconv.Itoa(id)
+
+	rows, err := tm.dbPool.Query(c,
+		"SELECT value, type, description, created_at FROM \"transaction\" WHERE client_id = $1 ORDER BY created_at DESC LIMIT 10",
+		idStr,
+	)
+	defer rows.Close()
+
+	if err != nil {
+		return tr, err
+	}
+
+	var t TransactionDto
+	for rows.Next() {
+		if err := rows.Scan(&t.Value, &t.T, &t.Description, &t.Realized); err != nil {
+			log.Println("Failed to scan a row")
+		}
+		tr = append(tr, t)
+	}
+	if err := rows.Err(); err != nil {
+		return tr, err
+	}
+
+	return tr, nil
 }
