@@ -27,7 +27,7 @@ func NewClientService(dbPool *pgxpool.Pool) *ClientService {
 	}
 }
 
-func (cs *ClientService) clientExists(c context.Context, id int) (bool, error) {
+func (cs *ClientService) ClientExists(c context.Context, id int) (bool, error) {
 	var exists bool
 
 	idStr := strconv.Itoa(id)
@@ -43,7 +43,7 @@ func (cs *ClientService) clientExists(c context.Context, id int) (bool, error) {
 	return exists, err
 }
 
-func (cs *ClientService) getClientBalance(c context.Context, id int) (*BalanceDto, error) {
+func (cs *ClientService) GetClientBalance(c context.Context, id int) (*BalanceDto, error) {
 	cBalance := &BalanceDto{}
 	idStr := strconv.Itoa(id)
 	err := cs.dbPool.QueryRow(c,
@@ -68,7 +68,7 @@ func NewTransactionService(dbPool *pgxpool.Pool) *TransactionService {
 	}
 }
 
-func (ts *TransactionService) getLastTenTransactionOfOneUser(c context.Context, id int) ([]TransactionDto, error) {
+func (ts *TransactionService) GetLastTenTransactionOfOneUser(c context.Context, id int) ([]TransactionDto, error) {
 	idStr := strconv.Itoa(id)
 	rows, err := ts.dbPool.Query(c,
 		getLastTenTransactionOfAUserQuery,
@@ -90,11 +90,11 @@ func (ts *TransactionService) getLastTenTransactionOfOneUser(c context.Context, 
 	return trSlice, nil
 }
 
-func (ts *TransactionService) createTransaction(c context.Context, uId int, tr CreateTransactionDto) error {
+func (ts *TransactionService) CreateTransaction(c context.Context, uId int, tr CreateTransactionDto) (*TransactionResponseDto, error) {
 	tx, err := ts.dbPool.Begin(c)
 	idStr := strconv.Itoa(uId)
 	if err != nil {
-		return ErrDatabaseFailure
+		return nil, ErrDatabaseFailure
 	}
 	defer tx.Rollback(c)
 
@@ -107,7 +107,7 @@ func (ts *TransactionService) createTransaction(c context.Context, uId int, tr C
 	newBalance := balance.Total - tr.Value
 
 	if newBalance < 0 && tr.Type == "d" {
-		return ErrInsufficientBalance
+		return nil, ErrInsufficientBalance
 	}
 
 	_, err = tx.Exec(c,
@@ -115,7 +115,7 @@ func (ts *TransactionService) createTransaction(c context.Context, uId int, tr C
 		newBalance, uId,
 	)
 	if err != nil {
-		return ErrDatabaseFailure
+		return nil, ErrDatabaseFailure
 	}
 
 	_, err = tx.Exec(c,
@@ -123,12 +123,16 @@ func (ts *TransactionService) createTransaction(c context.Context, uId int, tr C
 		tr.Value, tr.Type, tr.Description, idStr,
 	)
 	if err != nil {
-		return ErrDatabaseFailure
+		return nil, ErrDatabaseFailure
 	}
+
+	var trResp TransactionResponseDto
+	trResp.Balance = newBalance
+	trResp.Limit = balance.Limit
 
 	err = tx.Commit(c)
 	if err != nil {
-		return ErrDatabaseFailure
+		return nil, ErrDatabaseFailure
 	}
-	return nil
+	return &trResp, nil
 }
