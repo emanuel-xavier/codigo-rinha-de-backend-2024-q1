@@ -51,6 +51,6 @@ type BalanceDto struct {
 }
 
 type StatementResponseDto struct {
-	B                BalanceDto       `json:"saldo"`
+	Balance          BalanceDto       `json:"saldo"`
 	LastTransactions []TransactionDto `json:"ultimas_transacoes"`
 }
