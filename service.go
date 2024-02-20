@@ -1,35 +1,134 @@
 package main
 
-import "context"
+import (
+	"context"
+	"log"
+	"strconv"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	getClientBalanceQuery             = "SELECT \"limit\", balance FROM clients WHERE id = $1"
+	clientExistsQuery                 = "SELECT EXISTS(SELECT 1 FROM clients WHERE id = $1)"
+	inserTransactionQuery             = "INSERT INTO \"transaction\" (value, type, description, client_id) VALUES ($1, $2, $3, $4)"
+	getLastTenTransactionOfAUserQuery = "SELECT value, type, description, created_at FROM \"transaction\" WHERE client_id = $1 ORDER BY created_at DESC LIMIT 10"
+	selectClientForUpdate             = "SELECT balance, \"limit\" FROM clients WHERE id = $1 FOR UPDATE"
+	updateClientBalance               = "UPDATE clients SET balance = $1 WHERE id = $2"
+)
 
 type ClientService struct {
-	transactionRepo TransactionRepository
-	clientRepo      ClientRepository
+	dbPool *pgxpool.Pool
 }
 
-func NewClientService(transactionRepo TransactionRepository, clientRepo ClientRepository) *ClientService {
+func NewClientService(dbPool *pgxpool.Pool) *ClientService {
 	return &ClientService{
-		transactionRepo: transactionRepo,
-		clientRepo:      clientRepo,
+		dbPool: dbPool,
 	}
 }
 
 func (cs *ClientService) clientExists(c context.Context, id int) (bool, error) {
-	return cs.clientRepo.checkIfClientExists(c, id)
+	var exists bool
+
+	idStr := strconv.Itoa(id)
+	err := cs.dbPool.QueryRow(c,
+		clientExistsQuery,
+		idStr,
+	).Scan(&exists)
+
+	if err != nil {
+		return false, err
+	}
+
+	return exists, err
 }
 
 func (cs *ClientService) getClientBalance(c context.Context, id int) (*BalanceDto, error) {
-	return cs.clientRepo.getClientBalance(c, id)
+	cBalance := &BalanceDto{}
+	idStr := strconv.Itoa(id)
+	err := cs.dbPool.QueryRow(c,
+		getClientBalanceQuery,
+		idStr,
+	).Scan(&cBalance.Limit, &cBalance.Total)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return cBalance, nil
 }
 
 type TransactionService struct {
-	transactionRepo TransactionRepository
-	clientRepo      ClientRepository
+	dbPool *pgxpool.Pool
 }
 
-func NewTransactionService(transactionRepo TransactionRepository, clientRepo ClientRepository) *TransactionService {
+func NewTransactionService(dbPool *pgxpool.Pool) *TransactionService {
 	return &TransactionService{
-		transactionRepo: transactionRepo,
-		clientRepo:      clientRepo,
+		dbPool: dbPool,
 	}
+}
+
+func (ts *TransactionService) getLastTenTransactionOfOneUser(c context.Context, id int) ([]TransactionDto, error) {
+	idStr := strconv.Itoa(id)
+	rows, err := ts.dbPool.Query(c,
+		getLastTenTransactionOfAUserQuery,
+		idStr,
+	)
+	if err != nil {
+		return []TransactionDto{}, err
+	}
+
+	var tr TransactionDto
+	trSlice := make([]TransactionDto, 0, 10)
+	for rows.Next() {
+		if err := rows.Scan(&tr.Value, &tr.Type, &tr.Description, &tr.Accomplished); err != nil {
+			log.Println("Failed to scan a row")
+			continue
+		}
+		trSlice = append(trSlice, tr)
+	}
+	return trSlice, nil
+}
+
+func (ts *TransactionService) createTransaction(c context.Context, uId int, tr CreateTransactionDto) error {
+	tx, err := ts.dbPool.Begin(c)
+	idStr := strconv.Itoa(uId)
+	if err != nil {
+		return ErrDatabaseFailure
+	}
+	defer tx.Rollback(c)
+
+	var balance BalanceDto
+	err = tx.QueryRow(c,
+		selectClientForUpdate,
+		idStr,
+	).Scan(&balance.Total, &balance.Limit)
+
+	newBalance := balance.Total - tr.Value
+
+	if newBalance < 0 && tr.Type == "d" {
+		return ErrInsufficientBalance
+	}
+
+	_, err = tx.Exec(c,
+		updateClientBalance,
+		newBalance, uId,
+	)
+	if err != nil {
+		return ErrDatabaseFailure
+	}
+
+	_, err = tx.Exec(c,
+		inserTransactionQuery,
+		tr.Value, tr.Type, tr.Description, idStr,
+	)
+	if err != nil {
+		return ErrDatabaseFailure
+	}
+
+	err = tx.Commit(c)
+	if err != nil {
+		return ErrDatabaseFailure
+	}
+	return nil
 }
