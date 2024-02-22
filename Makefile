@@ -28,7 +28,7 @@ docker-push-images:
 
 build-docker: build-docker-images push-docker-images
 
-docker-run:
+docker-run: docker-clean
 	docker network create rinha
 	docker run --name db -v ./db/script.sql:/docker-entrypoint-initdb.d/script.sql --network rinha -e POSTGRES_PASSWORD=1234 -d --restart=always --health-cmd="pg_isready -U postgres" --health-interval=10s --health-retries=5 --health-start-period=30s postgres
 	docker run --name rinha --network rinha -p 9000:9000 -d $(DOCKER_IMAGE_PREFIX)/$(DOCKER_IMAGE_NAME)
