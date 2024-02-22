@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -50,6 +51,10 @@ func (cs *ClientService) GetClientBalance(c context.Context, id int) (*BalanceDt
 		getClientBalanceQuery,
 		idStr,
 	).Scan(&cBalance.Limit, &cBalance.Total)
+
+	if err == pgx.ErrNoRows {
+		return nil, nil
+	}
 
 	if err != nil {
 		return nil, err
