@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/configs"
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/db"
@@ -52,7 +53,32 @@ func createTransactionHandler(c *fiber.Ctx) error {
 }
 
 func getStatementHandler(c *fiber.Ctx) error {
-	return nil
+	id := c.Params("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		log.Println("Failed to parse id to string: ", err)
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	balance, err := cs.GetClientBalance(c.Context(), idInt)
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	if balance == nil {
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+
+	transactions, err := ts.GetLastTenTransactionOfOneUser(c.Context(), idInt)
+	if err != nil {
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	balance.BalanceDate = time.Now().Format("2006-01-02T15:04:05.999999Z")
+	return c.Status(200).JSON(StatementResponseDto{
+		Balance:          *balance,
+		LastTransactions: transactions,
+	})
 }
 
 func Handle() {
