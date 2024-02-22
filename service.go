@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	// "log"
 	"strconv"
 
 	"github.com/jackc/pgx/v5"
@@ -87,7 +87,7 @@ func (ts *TransactionService) GetLastTenTransactionOfOneUser(c context.Context, 
 	trSlice := make([]TransactionDto, 0, 10)
 	for rows.Next() {
 		if err := rows.Scan(&tr.Value, &tr.Type, &tr.Description, &tr.Accomplished); err != nil {
-			log.Println("Failed to scan a row")
+			// log.Println("Failed to scan a row")
 			continue
 		}
 		trSlice = append(trSlice, tr)
@@ -113,6 +113,10 @@ func (ts *TransactionService) CreateTransaction(c context.Context, uId int, tr C
 
 	if newBalance < 0 && tr.Type == "d" {
 		return nil, ErrInsufficientBalance
+	}
+
+	if newBalance < -balance.Limit && tr.Type == "c" {
+		return nil, ErrInsufficientLimit
 	}
 
 	_, err = tx.Exec(c,

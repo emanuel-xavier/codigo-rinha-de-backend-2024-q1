@@ -21,25 +21,27 @@ func createTransactionHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		log.Println("Failed to parse id to string: ", err)
+		// log.Println("Failed to parse id to string: ", err)
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
 	var trDto CreateTransactionDto
 	if err := c.BodyParser(&trDto); err != nil {
-		log.Println("Error parsing request body: ", err)
+		// log.Println("Error parsing request body: ", err)
 		return c.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
 	if !trDto.validate() {
-		log.Println("Cant validate request body content")
+		// log.Println("Cant validate request body content")
 		return c.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
 	trResp, err := ts.CreateTransaction(c.Context(), idInt, trDto)
 	if err != nil {
-		log.Println(err)
+		// log.Println(err)
 		switch err {
+		case ErrInsufficientLimit:
+			return c.SendStatus(fiber.StatusUnprocessableEntity)
 		case ErrInsufficientBalance:
 			return c.SendStatus(fiber.StatusUnprocessableEntity)
 		case ErrNotFound:
@@ -56,7 +58,7 @@ func getStatementHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		log.Println("Failed to parse id to string: ", err)
+		// log.Println("Failed to parse id to string: ", err)
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
@@ -102,6 +104,6 @@ func Handle() {
 	app.Post("/clientes/:id/transacoes", createTransactionHandler)
 	app.Get("/clientes/:id/extrato", getStatementHandler)
 
-	log.Println("Server runing on port", serverPort)
+	// log.Println("Server runing on port", serverPort)
 	log.Fatal(app.Listen(serverPort))
 }

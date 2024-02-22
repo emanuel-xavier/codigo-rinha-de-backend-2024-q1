@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	// "log"
 	"strings"
 	"time"
 )
@@ -13,19 +13,19 @@ type CreateTransactionDto struct {
 }
 
 func (ctDto *CreateTransactionDto) validate() bool {
-	log.Println(*ctDto)
+	//log.Println(*ctDto)
 	if ctDto.Value <= 0 {
-		log.Println("Value <= 0")
+		//log.Println("Value <= 0")
 		return false
 	}
 
 	if strings.ToLower(ctDto.Type) != "c" && strings.ToLower(ctDto.Type) != "d" {
-		log.Println("Wrong type")
+		// log.Println("Wrong type")
 		return false
 	}
 
 	if decLen := len(ctDto.Description); decLen < 1 || decLen > 10 {
-		log.Println("Description size")
+		// log.Println("Description size")
 		return false
 	}
 
