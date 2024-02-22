@@ -13,6 +13,8 @@ COPY . .
 
 RUN go build -o main .
 
+RUN find . -mindepth 1 -not -name 'main' -exec rm -rf {} +
+
 EXPOSE 9000
 
 CMD ["./main"]
