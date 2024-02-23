@@ -14,6 +14,10 @@ type TransactionRepo struct {
 	pool pgxpool.Pool
 }
 
+func NewTransactionRepo(pool pgxpool.Pool) *TransactionRepo {
+	return &TransactionRepo{pool: pool}
+}
+
 func (repo *TransactionRepo) GetTenLastTransactionsByUserId(ctx context.Context, id int) ([]entity.Transaction, error) {
 	idStr := strconv.Itoa(id)
 	rows, err := repo.pool.Query(ctx,

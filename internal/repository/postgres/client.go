@@ -13,6 +13,10 @@ type ClientRepo struct {
 	pool pgxpool.Pool
 }
 
+func NewClientRepo(pool pgxpool.Pool) *ClientRepo {
+	return &ClientRepo{pool: pool}
+}
+
 func (repo *ClientRepo) GetClientById(ctx context.Context, id int) (entity.Client, error) {
 	var client entity.Client
 	err := repo.pool.QueryRow(ctx,
