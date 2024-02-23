@@ -7,7 +7,7 @@ import (
 )
 
 type ClientRepository interface {
-	GetClientById(id int) (entity.Client, error)
+	GetClientById(ctx context.Context, id int) (entity.Client, error)
 }
 
 type TransactionRepository interface {
