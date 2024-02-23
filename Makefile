@@ -7,10 +7,10 @@ DOCKER_IMAGE_NAME=rinha-2024-q1
 
 build:
 	mkdir -p build
-	go build -o build/$(BINARY_NAME) .
+	go build -o build/$(BINARY_NAME) cmd/main.go
 
 run:
-	go run *.go
+	go run cmd/main.go
 
 clean:
 	rm -rf build/*
