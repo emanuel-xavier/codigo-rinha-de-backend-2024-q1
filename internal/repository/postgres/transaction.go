@@ -10,11 +10,11 @@ import (
 )
 
 // Implements TransactionRepository
-type PostgresRepo struct {
+type TransactionRepo struct {
 	pool pgxpool.Pool
 }
 
-func (repo *PostgresRepo) GetTenLastTransactionsByUserId(ctx context.Context, id int) ([]entity.Transaction, error) {
+func (repo *TransactionRepo) GetTenLastTransactionsByUserId(ctx context.Context, id int) ([]entity.Transaction, error) {
 	idStr := strconv.Itoa(id)
 	rows, err := repo.pool.Query(ctx,
 		"SELECT value, type, description, created_ad FROM \"transaction\" WHERE client_id = $1 ORDER BY created_at DEC LIMIT 10",
@@ -36,7 +36,7 @@ func (repo *PostgresRepo) GetTenLastTransactionsByUserId(ctx context.Context, id
 	return trSlice, nil
 }
 
-func (repo *PostgresRepo) CreateTransaction(ctx context.Context, transaction entity.Transaction, balance int) error {
+func (repo *TransactionRepo) CreateTransaction(ctx context.Context, transaction entity.Transaction, balance int) error {
 	tx, err := repo.pool.Begin(ctx)
 	if err != nil {
 		return err
