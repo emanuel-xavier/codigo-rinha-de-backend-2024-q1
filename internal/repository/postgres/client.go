@@ -10,7 +10,7 @@ import (
 )
 
 type ClientRepo struct {
-	pool pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
 func NewClientRepo(pool pgxpool.Pool) *ClientRepo {
