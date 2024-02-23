@@ -20,6 +20,11 @@ func NewClientService(cRepo repository.ClientRepository, tRepo repository.Transa
 	}
 }
 
+func (serv *ClientService) GetClientById(ctx context.Context, id int) (*entity.Client, error) {
+	client, err := serv.cRepo.GetClientById(ctx, id)
+	return &client, err
+}
+
 func (serv *ClientService) GetClientStatemant(ctx context.Context, id int) (*entity.Statement, error) {
 	client, err := serv.cRepo.GetClientById(ctx, id)
 	if err != nil {
