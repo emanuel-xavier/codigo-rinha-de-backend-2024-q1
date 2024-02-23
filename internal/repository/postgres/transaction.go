@@ -21,7 +21,7 @@ func NewTransactionRepo(pool *pgxpool.Pool) *TransactionRepo {
 func (repo *TransactionRepo) GetTenLastTransactionsByUserId(ctx context.Context, id int) ([]entity.Transaction, error) {
 	idStr := strconv.Itoa(id)
 	rows, err := repo.pool.Query(ctx,
-		"SELECT value, type, description, created_ad FROM \"transaction\" WHERE client_id = $1 ORDER BY created_at DEC LIMIT 10",
+		"SELECT value, type, description, created_at FROM \"transaction\" WHERE client_id = $1 ORDER BY created_at DESC LIMIT 10",
 		idStr,
 	)
 	if err != nil {
