@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/internal/entity"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -13,7 +13,7 @@ type ClientRepo struct {
 	pool *pgxpool.Pool
 }
 
-func NewClientRepo(pool pgxpool.Pool) *ClientRepo {
+func NewClientRepo(pool *pgxpool.Pool) *ClientRepo {
 	return &ClientRepo{pool: pool}
 }
 
