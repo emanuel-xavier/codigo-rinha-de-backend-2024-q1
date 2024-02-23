@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o main .
+RUN go build -o main cmd/main.go
 
 RUN find . -mindepth 1 -not -name 'main' -exec rm -rf {} +
 
