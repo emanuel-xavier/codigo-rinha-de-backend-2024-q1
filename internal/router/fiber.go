@@ -57,15 +57,18 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 
 	var trDto dto.TransactionRequest
 	if err := ctx.BodyParser(&trDto); err != nil {
+		// log.Println("failed to parse content body")
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
 	if err := trDto.Validate(); err != nil {
+		// log.Println("failed to validate dto", err.Error())
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
 	client, err := fr.cs.GetClientById(context.Background(), idInt)
 	if err != nil {
+		// log.Println(err)
 		if err.Error() == "not found" {
 			return ctx.SendStatus(fiber.StatusNotFound)
 		}
@@ -79,11 +82,18 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 		ClientId:   idInt,
 	}
 
-	if err := fr.ts.CreateTransaction(ctx.Context(), transaction, client.Balance); err != nil {
+	if err := fr.ts.CreateTransaction(ctx.Context(), transaction, client); err != nil {
+		// log.Println(err)
+		if err.Error() == "insufficient funds" {
+			return ctx.SendStatus(fiber.StatusUnprocessableEntity)
+		}
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	return nil
+	return ctx.Status(fiber.StatusOK).JSON(dto.TransactionResponse{
+		Limit:   client.Limit,
+		Balance: client.Balance,
+	})
 }
 
 func (fr *FiberRouter) getStatementHandler(ctx *fiber.Ctx) error {
