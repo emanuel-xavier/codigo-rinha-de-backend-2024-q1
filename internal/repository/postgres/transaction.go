@@ -11,10 +11,10 @@ import (
 
 // Implements TransactionRepository
 type TransactionRepo struct {
-	pool pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
-func NewTransactionRepo(pool pgxpool.Pool) *TransactionRepo {
+func NewTransactionRepo(pool *pgxpool.Pool) *TransactionRepo {
 	return &TransactionRepo{pool: pool}
 }
 
