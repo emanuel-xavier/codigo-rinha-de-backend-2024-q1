@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"strconv"
 
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/internal/entity"
@@ -33,4 +34,37 @@ func (repo *PostgresRepo) GetTenLastTransactionsByUserId(ctx context.Context, id
 	}
 
 	return trSlice, nil
+}
+
+func (repo *PostgresRepo) CreateTransaction(ctx context.Context, transaction entity.Transaction, balance int) error {
+	tx, err := repo.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	cmt, err := tx.Exec(ctx,
+		"UPDATE \"clients\" SET balance = $1 WHERE id = $2",
+		balance, transaction.ClientId,
+	)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	if cmt.RowsAffected() < 1 {
+		tx.Rollback(ctx)
+		return errors.New("client not found")
+	}
+
+	_, err = tx.Exec(ctx,
+		"INSERT INTO \"transaction\" (value, type, description, client_id) VALUES ($1, $2, $3, $4)",
+		transaction.Value, transaction.Type, transaction.Descrition, transaction.ClientId,
+	)
+	if err != nil {
+		tx.Rollback(ctx)
+		return err
+	}
+
+	tx.Commit(ctx)
+	return nil
 }
