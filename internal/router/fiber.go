@@ -97,5 +97,20 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 }
 
 func (fr *FiberRouter) getStatementHandler(ctx *fiber.Ctx) error {
-	return nil
+	id := ctx.Params("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	statemant, err := fr.cs.GetClientStatemant(ctx.Context(), idInt)
+	if err != nil {
+		// log.Println(err)
+		if err.Error() == "not found" {
+			return ctx.SendStatus(fiber.StatusNotFound)
+		}
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(statemant)
 }
