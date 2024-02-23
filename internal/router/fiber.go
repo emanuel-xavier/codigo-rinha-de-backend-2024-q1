@@ -55,13 +55,13 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	var trDto dto.TransactionRequest
-	if err := ctx.BodyParser(&trDto); err != nil {
+	var transaction entity.Transaction
+	if err := ctx.BodyParser(&transaction); err != nil {
 		// log.Println("failed to parse content body")
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
-	if err := trDto.Validate(); err != nil {
+	if err := transaction.Validate(); err != nil {
 		// log.Println("failed to validate dto", err.Error())
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 	}
@@ -75,12 +75,7 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 
-	transaction := entity.Transaction{
-		Type:       trDto.Type,
-		Descrition: trDto.Description,
-		Value:      trDto.Value,
-		ClientId:   idInt,
-	}
+	transaction.ClientId = idInt
 
 	if err := fr.ts.CreateTransaction(ctx.Context(), transaction, client); err != nil {
 		// log.Println(err)
@@ -105,7 +100,6 @@ func (fr *FiberRouter) getStatementHandler(ctx *fiber.Ctx) error {
 
 	statemant, err := fr.cs.GetClientStatemant(ctx.Context(), idInt)
 	if err != nil {
-		// log.Println(err)
 		if err.Error() == "not found" {
 			return ctx.SendStatus(fiber.StatusNotFound)
 		}

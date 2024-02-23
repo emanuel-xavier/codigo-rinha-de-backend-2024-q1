@@ -42,15 +42,8 @@ func (serv *ClientService) GetClientStatemant(ctx context.Context, id int) (*ent
 		Limit:  client.Limit,
 	}
 
-	sTransactions := make([]entity.StatementTransaction, len(transactions))
-	for i, tr := range transactions {
-		sTransactions[i].Value = tr.Value
-		sTransactions[i].Description = tr.Descrition
-		sTransactions[i].Type = tr.Type
-		sTransactions[i].Accomplished = tr.Accomplished
-	}
 	return &entity.Statement{
 		Balance:             balance,
-		LastTenTransactions: sTransactions,
+		LastTenTransactions: transactions,
 	}, nil
 }

@@ -1,6 +1,8 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type StatementBalance struct {
 	Amount int       `json:"total"`
@@ -8,14 +10,7 @@ type StatementBalance struct {
 	Limit  int       `json:"limite"`
 }
 
-type StatementTransaction struct {
-	Value        int       `json:"valor"`
-	Type         string    `json:"tipo"`
-	Description  string    `json:"descricao"`
-	Accomplished time.Time `json:"realizado_em"`
-}
-
-type StatementLastTransactions []StatementTransaction
+type StatementLastTransactions []Transaction
 
 type Statement struct {
 	Balance             StatementBalance          `json:"saldo"`

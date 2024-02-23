@@ -31,7 +31,7 @@ func (repo *TransactionRepo) GetTenLastTransactionsByUserId(ctx context.Context,
 	var tr entity.Transaction
 	trSlice := make([]entity.Transaction, 0, 10)
 	for rows.Next() {
-		if err := rows.Scan(&tr.Value, &tr.Type, &tr.Descrition, &tr.Accomplished); err != nil {
+		if err := rows.Scan(&tr.Value, &tr.Type, &tr.Description, &tr.Accomplished); err != nil {
 			continue
 		}
 		trSlice = append(trSlice, tr)
@@ -62,7 +62,7 @@ func (repo *TransactionRepo) CreateTransaction(ctx context.Context, transaction 
 
 	_, err = tx.Exec(ctx,
 		"INSERT INTO \"transaction\" (value, type, description, client_id) VALUES ($1, $2, $3, $4)",
-		transaction.Value, transaction.Type, transaction.Descrition, transaction.ClientId,
+		transaction.Value, transaction.Type, transaction.Description, transaction.ClientId,
 	)
 	if err != nil {
 		tx.Rollback(ctx)
