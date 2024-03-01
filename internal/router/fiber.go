@@ -1,7 +1,6 @@
 package router
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"strconv"
@@ -56,6 +55,7 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 	}
 
 	var transaction entity.Transaction
+	var client entity.Client
 	if err := ctx.BodyParser(&transaction); err != nil {
 		// log.Println("failed to parse content body")
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
@@ -66,22 +66,17 @@ func (fr *FiberRouter) createTransactionHandler(ctx *fiber.Ctx) error {
 		return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 	}
 
-	client, err := fr.cs.GetClientById(context.Background(), idInt)
-	if err != nil {
-		// log.Println(err)
-		if err.Error() == "not found" {
-			return ctx.SendStatus(fiber.StatusNotFound)
-		}
-		return ctx.SendStatus(fiber.StatusInternalServerError)
-	}
-
 	transaction.ClientId = idInt
 
-	if err := fr.ts.CreateTransaction(ctx.Context(), transaction, client); err != nil {
+	if err := fr.ts.CreateTransaction(ctx.Context(), transaction, &client); err != nil {
 		// log.Println(err)
 		if err.Error() == "insufficient funds" {
 			return ctx.SendStatus(fiber.StatusUnprocessableEntity)
 		}
+		if err.Error() == "not found" {
+			return ctx.SendStatus(fiber.StatusNotFound)
+		}
+
 		return ctx.SendStatus(fiber.StatusInternalServerError)
 	}
 

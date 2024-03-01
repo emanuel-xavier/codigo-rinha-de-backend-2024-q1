@@ -6,6 +6,7 @@ import (
 
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/internal/entity"
 	"github.com/emanuel-xavier/codigo-rinha-de-backend-2024-q1/internal/repository"
+	"github.com/jackc/pgx/v5"
 )
 
 type ClientService struct {
@@ -23,6 +24,11 @@ func NewClientService(cRepo repository.ClientRepository, tRepo repository.Transa
 func (serv *ClientService) GetClientById(ctx context.Context, id int) (*entity.Client, error) {
 	client, err := serv.cRepo.GetClientById(ctx, id)
 	return &client, err
+}
+
+func (serv *ClientService) GetClientByIdAndLock(ctx context.Context, id int) (*entity.Client, pgx.Tx, error) {
+	client, tx, err := serv.cRepo.GetClientByIdAndLock(ctx, id)
+	return &client, tx, err
 }
 
 func (serv *ClientService) GetClientStatemant(ctx context.Context, id int) (*entity.Statement, error) {
