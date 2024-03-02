@@ -40,7 +40,7 @@ func (repo *ClientRepo) GetClientByIdAndLock(ctx context.Context, id int) (clien
 	}
 
 	err = tx.QueryRow(ctx,
-		"SELECT balance, \"limit\", name FROM clients WHERE id = $1",
+		"SELECT balance, \"limit\", name FROM clients WHERE id = $1 FOR UPDATE",
 		id,
 	).Scan(&client.Balance, &client.Limit, &client.Name)
 
