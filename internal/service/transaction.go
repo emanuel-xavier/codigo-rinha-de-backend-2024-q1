@@ -22,16 +22,15 @@ func NewTransactionService(cRepo repository.ClientRepository, tRepo repository.T
 
 func (serv *TransactionService) CreateTransaction(ctx context.Context, transaction entity.Transaction, client *entity.Client) error {
 	c, tx, err := serv.cRepo.GetClientByIdAndLock(ctx, transaction.ClientId)
-	defer tx.Rollback(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Rollback(ctx)
 	*client = c
 
 	if transaction.Type == "d" {
 		client.Balance -= transaction.Value
 		if client.Balance < -client.Limit {
-			tx.Rollback(ctx)
 			return errors.New("insufficient funds")
 		}
 	} else {
@@ -43,7 +42,6 @@ func (serv *TransactionService) CreateTransaction(ctx context.Context, transacti
 	}
 
 	err = serv.tRepo.CreateTransaction(ctx, tx, transaction)
-
 	if err != nil {
 		return err
 	}
