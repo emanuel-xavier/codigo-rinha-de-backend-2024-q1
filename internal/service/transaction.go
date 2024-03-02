@@ -26,7 +26,7 @@ func (serv *TransactionService) CreateTransaction(ctx context.Context, transacti
 	if err != nil {
 		return err
 	}
-	client = &c
+	*client = c
 
 	if transaction.Type == "d" {
 		client.Balance -= transaction.Value
