@@ -23,9 +23,9 @@ services:
           cpus: "${API_CPU}"
           memory: "${API_MEMORY}"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health-check || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9001/health-check || exit 1"]
       interval: 10s
-      timeout: 10s
+      timeout: 5s
       retries: 5
 
   api02:
@@ -35,7 +35,9 @@ services:
       - DB_HOSTNAME=db
     ports:
       - "9002:${API_PORT}"
- 
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:9002/health-check || exit 1"]
+
   nginx:
     <<: *common
     restart: always
