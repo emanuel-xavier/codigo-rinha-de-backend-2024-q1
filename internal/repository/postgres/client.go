@@ -20,9 +20,9 @@ func NewClientRepo(pool *pgxpool.Pool) *ClientRepo {
 func (repo *ClientRepo) GetClientById(ctx context.Context, id int) (entity.Client, error) {
 	var client entity.Client
 	err := repo.pool.QueryRow(ctx,
-		"SELECT balance, \"limit\", name FROM clients WHERE id = $1",
+		"SELECT balance, \"limit\", name, id FROM clients WHERE id = $1",
 		id,
-	).Scan(&client.Balance, &client.Limit, &client.Name)
+	).Scan(&client.Balance, &client.Limit, &client.Name, &client.Id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return client, errors.New("not found")
@@ -40,9 +40,9 @@ func (repo *ClientRepo) GetClientByIdAndLock(ctx context.Context, id int) (clien
 	}
 
 	err = tx.QueryRow(ctx,
-		"SELECT balance, \"limit\", name FROM clients WHERE id = $1 FOR UPDATE",
+		"SELECT balance, \"limit\", name, id FROM clients WHERE id = $1 FOR UPDATE",
 		id,
-	).Scan(&client.Balance, &client.Limit, &client.Name)
+	).Scan(&client.Balance, &client.Limit, &client.Name, &client.Id)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
